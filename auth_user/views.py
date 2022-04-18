@@ -41,9 +41,9 @@ class UserApi(APIView, ApiResponse):
                 user_object = get_object_or_404(SystemUser, uid=uid)
                 many = False
             serializer = UserSerializer(user_object, many=many)
-            self.postSuccess({"users": serializer.data}, "User fetched successfully")
+            self.postSuccess({"user": serializer.data}, "User fetched successfully")
         except Exception as e:
-            self.postError({"users": str(e)})
+            self.postError({"user": str(e)})
         return Response(self.output_object)
 
     def patch(self, request, uid=None):

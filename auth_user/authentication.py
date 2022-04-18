@@ -28,7 +28,7 @@ class ApiResponse:
 
 class RequestAuthentication(BaseAuthentication, ApiResponse):
     def __init__(self):
-        self.user_auth_list = []
+        self.user_auth_list = ["CourseApi"]
         ApiResponse.__init__(self)
 
     def authenticateApiKey(self, request):

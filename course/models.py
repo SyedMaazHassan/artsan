@@ -18,6 +18,9 @@ class CommonField(models.Model):
         abstract = True
         ordering = ("id",)
 
+    def __str__(self):
+        return self.title
+
 
 class Course(CommonField):
     topic = models.CharField(max_length=100)

@@ -1,11 +1,15 @@
 from django.urls import path
 from . import views
-from auth_user.views import *
+from course.views import *
 from django.conf import settings
 from django.conf.urls.static import static
 
 
-urlpatterns = []
+urlpatterns = [
+    # Users
+    path("course", CourseApi.as_view()),
+    path("course/<id>", CourseApi.as_view()),
+]
 
 
 urlpatterns = urlpatterns + static(
