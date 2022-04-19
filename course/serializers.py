@@ -5,6 +5,12 @@ from course.models import *
 from django.db.models import Q
 
 
+class ChapterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chapter
+        exclude = ("course",)
+
+
 class CourseSerializer(serializers.ModelSerializer):
     progress = serializers.SerializerMethodField(method_name="get_progress")
 

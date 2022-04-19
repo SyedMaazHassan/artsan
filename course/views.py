@@ -16,6 +16,11 @@ class CourseApi(APIView, ApiResponse):
     def __init__(self):
         ApiResponse.__init__(self)
 
+    def get_all_chapters(self, course):
+        all_chapters = Chapter.objects.filter(course=course)
+        serialized_all_chapters = ChapterSerializer(all_chapters, many=True)
+        return serialized_all_chapters.data
+
     def post(self, request, uid=None):
         try:
             data = request.data.copy()
@@ -33,6 +38,7 @@ class CourseApi(APIView, ApiResponse):
 
     def get(self, request, id=None):
         try:
+            output = {}
             user = SystemUser.objects.get(uid=request.headers["uid"])
             print(user)
             if not id:
@@ -41,11 +47,13 @@ class CourseApi(APIView, ApiResponse):
             else:
                 course_object = get_object_or_404(Course, id=id)
                 many = False
+                output["chapters"] = self.get_all_chapters(course_object)
 
-            serializer = CourseSerializer(
+            serialized_course = CourseSerializer(
                 course_object, many=many, context={"user": user}
             )
-            self.postSuccess({"course": serializer.data}, "Course fetched successfully")
+            output["course"] = serialized_course.data
+            self.postSuccess(output, "Course fetched successfully")
         except Exception as e:
             self.postError({"course": str(e)})
         return Response(self.output_object)
