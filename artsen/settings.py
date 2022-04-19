@@ -58,7 +58,7 @@ ROOT_URLCONF = "artsen.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -73,6 +73,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "artsen.wsgi.application"
 
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "auth_user.authentication.RequestAuthentication",
+    ),
+    "EXCEPTION_HANDLER": "auth_user.support.custom_exception_handler",
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

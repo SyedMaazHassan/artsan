@@ -37,6 +37,9 @@ class Completed(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return f"{self.user.first_name} - {self.chapter}"
+
 
 class Content(models.Model):
     Type = models.CharField(
@@ -53,32 +56,53 @@ class Content(models.Model):
     text = models.TextField(null=True, blank=True)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.chapter} - *{self.Type}*"
+
     class Meta:
-        abstract = True
         ordering = ("id",)
 
 
 class Quiz(models.Model):
-    question = models.CharField(max_length=255)
-    description = models.TextField()
+    name = models.CharField(max_length=255)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.chapter} -> {self.name}"
+
+
+class Question(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.quiz} -> {self.title}"
 
 
 class Option(models.Model):
     answer = models.CharField(max_length=255)
     is_correct = models.BooleanField()
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.question} -> {self.answer} - {self.is_correct}"
 
     def save(self, *args, **kwargs):
         is_correct = self.is_correct
-        all_options = Option.objects.filter(quiz=self.quiz)
-        all_options.update(is_correct=False)
+        if is_correct:
+            all_options = Option.objects.filter(question=self.question)
+            all_options.update(is_correct=False)
         self.is_correct = is_correct
         super(Option, self).save(*args, **kwargs)
+
+    class Meta:
+        ordering = ("id",)
 
 
 class Review(models.Model):
     star = models.IntegerField()
     message = models.TextField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    user = models.ForeignKey(SystemUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
