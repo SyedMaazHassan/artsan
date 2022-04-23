@@ -3,6 +3,7 @@ from django.conf import settings
 from datetime import datetime, timedelta, date
 from django.utils import timezone
 from auth_user.models import *
+import json
 
 # python manage.py makemigrations
 # python manage.py migrate
@@ -30,6 +31,11 @@ class Chapter(CommonField):
     picture = models.ImageField(upload_to="chapter-icon")
     time_to_complete = models.IntegerField()
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
+    def markAsCompleted(self, user):
+        check_query = Completed.objects.filter(chapter=self, user=user).exists()
+        if not check_query:
+            Completed.objects.create(chapter=self, user=user)
 
 
 class Completed(models.Model):
@@ -71,6 +77,45 @@ class Quiz(models.Model):
         return f"{self.chapter} -> {self.name}"
 
 
+class QuizResponse(models.Model):
+    json = models.TextField()
+    result = models.FloatField()
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    user = models.ForeignKey(SystemUser, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def calculate_result(self, response):
+        response_length = len(response)
+        all_questions = Question.objects.filter(quiz=self.quiz)
+        all_questions_ids = all_questions.values_list("id", flat=True)
+        total_questions = all_questions_ids.count()
+        correct_answers = 0
+
+        if response_length == 0 or response_length != total_questions:
+            raise Exception("Invalid quiz response")
+
+        all_answers = Option.objects.filter(question_id__in=all_questions_ids)
+        for single_response in response:
+            question = all_questions.filter(id=single_response["question_id"]).first()
+            if question:
+                answer = all_answers.filter(
+                    question=question, id=single_response["answer_id"]
+                ).first()
+                if answer:
+                    if answer.is_correct:
+                        correct_answers += 1
+                else:
+                    raise Exception("Provided quiz response has invalid answer_id")
+            else:
+                raise Exception("Provided quiz response has invalid question_id")
+        result = round(correct_answers / total_questions * 100, 2)
+        self.result = result
+        self.json = json.dumps(response)
+
+    def __str__(self):
+        return f"Response: {self.quiz} => {self.user}"
+
+
 class Question(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -106,3 +151,6 @@ class Review(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(SystemUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.course} - *{self.star}* - *{self.message}* -  *{self.user.first_name}*"

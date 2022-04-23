@@ -3,6 +3,15 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from course.models import *
 from django.db.models import Q
+from auth_user.serializers import *
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    user = UserSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Review
+        exclude = ("id", "course")
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -10,6 +19,13 @@ class OptionSerializer(serializers.ModelSerializer):
         model = Option
         # fields = "__all__"
         exclude = ("question",)
+
+
+class QuizResponseSerailizer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizResponse
+        # fields = "__all__"
+        exclude = ("json", "quiz", "user", "id")
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -36,11 +52,32 @@ class ContentSerializer(serializers.ModelSerializer):
 
 class ChapterSerializer(serializers.ModelSerializer):
     is_completed = serializers.SerializerMethodField(method_name="get_is_completed")
+    is_locked = serializers.SerializerMethodField(method_name="get_is_locked")
 
     def get_is_completed(self, instance):
         chapter_id = instance.id
         user = self.context["user"]
         return Completed.objects.filter(user=user, chapter_id=chapter_id).exists()
+
+    def get_is_locked(self, instance):
+        chapter = instance
+        user = self.context["user"]
+        all_completed = Completed.objects.filter(user=user).values_list(
+            "chapter_id", flat=True
+        )
+        all_chapters_not_completed = Chapter.objects.filter(course=chapter.course)
+        all_chapters_not_completed = all_chapters_not_completed.filter(
+            ~Q(id__in=all_completed)
+        )
+        if all_chapters_not_completed.count() > 0:
+            if (
+                all_chapters_not_completed[0].id == instance.id
+                or instance.id in all_completed
+            ):
+                return False
+            return True
+        else:
+            return False
 
     class Meta:
         model = Chapter
@@ -76,7 +113,6 @@ class CourseSerializer(serializers.ModelSerializer):
                 "status": status,
                 "open_id": next_chapter_to_open,
             }
-            return
         return None
 
     class Meta:

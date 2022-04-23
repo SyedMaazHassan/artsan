@@ -21,6 +21,10 @@ class SystemUser(models.Model):
     last_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True, blank=True, null=True)
+
+    is_light_theme = models.BooleanField(default=True)
+    is_font_large = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
