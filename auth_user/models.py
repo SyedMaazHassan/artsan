@@ -17,8 +17,7 @@ class SystemUser(models.Model):
     avatar = models.CharField(
         max_length=255, null=True, blank=True, default="avatars/default-profile.png"
     )
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    full_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True, blank=True, null=True)
 
