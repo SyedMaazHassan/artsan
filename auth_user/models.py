@@ -27,7 +27,7 @@ class SystemUser(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.first_name} - {self.uid}"
+        return f"{self.full_name} - {self.uid}"
 
     def random_string_generator(self, str_size, allowed_chars):
         import random

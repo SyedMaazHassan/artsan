@@ -44,7 +44,7 @@ class Completed(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.user.first_name} - {self.chapter}"
+        return f"{self.user.full_name} - {self.chapter}"
 
 
 class Content(models.Model):
@@ -153,4 +153,4 @@ class Review(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.course} - *{self.star}* - *{self.message}* -  *{self.user.first_name}*"
+        return f"{self.course} - *{self.star}* - *{self.message}* -  *{self.user.full_name}*"
