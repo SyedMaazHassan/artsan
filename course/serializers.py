@@ -44,6 +44,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class ContentSerializer(serializers.ModelSerializer):
+    duration = serializers.CharField(source="get_duration")
+
     class Meta:
         model = Content
         # fields = "__all__"

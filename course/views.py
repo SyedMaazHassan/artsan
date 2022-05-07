@@ -10,8 +10,8 @@ from course.serializers import *
 
 # Create your views here.
 def index(request):
-    chapter_id = 1
-    all_content = Content.objects.filter(chapter_id=chapter_id)
+    chapter = Chapter.objects.all().last()
+    all_content = Content.objects.filter(chapter_id=chapter.id)
     context = {"all_content": all_content}
     return render(request, "index.html", context)
 
@@ -100,23 +100,23 @@ class ChapterApi(APIView, ApiResponse):
         return serialized_all_content.data
 
     def get(self, request, id):
-        try:
-            output = {}
-            user = SystemUser.objects.get(uid=request.headers["uid"])
-            print("=======")
-            print(id)
-            print("=======")
-            chapter_object = get_object_or_404(Chapter, id=id)
-            quiz = Quiz.objects.filter(chapter=chapter_object).first()
-            all_content = self.get_all_content(chapter_object)
-            output["chapter"] = ChapterSerializer(
-                chapter_object, many=False, context={"user": user}
-            ).data
-            output["content"] = all_content
-            output["quiz_id"] = quiz.id if quiz else None
-            self.postSuccess(output, "Chapter fetched successfully")
-        except Exception as e:
-            self.postError({"chapter": str(e)})
+        # try:
+        output = {}
+        user = SystemUser.objects.get(uid=request.headers["uid"])
+        print("=======")
+        print(id)
+        print("=======")
+        chapter_object = get_object_or_404(Chapter, id=id)
+        quiz = Quiz.objects.filter(chapter=chapter_object).first()
+        all_content = self.get_all_content(chapter_object)
+        output["chapter"] = ChapterSerializer(
+            chapter_object, many=False, context={"user": user}
+        ).data
+        output["content"] = all_content
+        output["quiz_id"] = quiz.id if quiz else None
+        self.postSuccess(output, "Chapter fetched successfully")
+        # except Exception as e:
+        #     self.postError({"chapter": str(e)})
         return Response(self.output_object)
 
 

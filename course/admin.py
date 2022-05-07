@@ -10,6 +10,7 @@ class ChapterInline(admin.StackedInline):
 
 class CourseAdmin(admin.ModelAdmin):
     inlines = [ChapterInline]
+    list_display = ("title", "topic", "created_at")
 
 
 class ContentInline(admin.StackedInline):

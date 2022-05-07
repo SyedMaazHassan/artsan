@@ -3,7 +3,7 @@ from django.conf import settings
 from datetime import datetime, timedelta, date
 from django.utils import timezone
 from auth_user.models import *
-import json
+import json, os
 
 # python manage.py makemigrations
 # python manage.py migrate
@@ -61,6 +61,33 @@ class Content(models.Model):
     file = models.FileField(upload_to="content-files", null=True, blank=True)
     text = models.TextField(null=True, blank=True)
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+
+    def duration_detector(self, length):
+        hours = length // 3600  # calculate in hours
+        length %= 3600
+        mins = length // 60  # calculate in minutes
+        length %= 60
+        seconds = length  # calculate in seconds
+
+        return hours, mins, seconds
+
+    def audio_duration(self, length):
+        hours = length // 3600  # calculate in hours
+        length %= 3600
+        mins = length // 60  # calculate in minutes
+        length %= 60
+        seconds = length  # calculate in seconds
+        return hours, mins, seconds
+
+    def get_duration(self):
+        import mutagen
+
+        if self.Type not in ["audio", "video"]:
+            return None
+
+        audio_info = mutagen.File(self.file).info
+        hours, mins, seconds = self.audio_duration(int(audio_info.length))
+        return f"{hours}:{mins}:{seconds}"
 
     def __str__(self):
         return f"{self.chapter} - *{self.Type}*"
